@@ -17,34 +17,34 @@ func main() {
 		return
 	}
 
-	var in *bufio.Scanner
+	var inFile *os.File
 	if args.Input == "" {
-		in = bufio.NewScanner(os.Stdin)
+		inFile = os.Stdin
 	} else {
-		file, err := os.Open(args.Input)
+		inFile, err = os.Open(args.Input)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-		defer file.Close()
-		in = bufio.NewScanner(file)
+		defer inFile.Close()
 	}
 
-	var out *bufio.Writer
+	var outFile *os.File
 	if args.Output == "" {
-		out = bufio.NewWriter(os.Stdout)
+		outFile = os.Stdout
 	} else {
-		file, err := os.Create(args.Output)
+		outFile, err = os.Create(args.Output)
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-		defer file.Close()
-		out = bufio.NewWriter(file)
+		defer outFile.Close()
 	}
 
-	for line := range lines_filtering.ChosenLinesGenerator(in, *args) {
-		out.WriteString(line + "/n")
+	out := bufio.NewWriter(outFile)
+
+	for line := range lines_filtering.ChosenLinesGenerator(inFile, *args) {
+		out.WriteString(line + "\n")
 	}
 	out.Flush()
 }
