@@ -2,7 +2,7 @@ package main
 
 import (
 	"GoHomework/cmd_args"
-	"GoHomework/loops"
+	"GoHomework/lines_filtering"
 	"fmt"
 
 	"bufio"
@@ -43,7 +43,7 @@ func main() {
 		out = bufio.NewWriter(file)
 	}
 
-	for line := range loops.ChosenLinesGenerator(in, *args) {
+	for line := range lines_filtering.ChosenLinesGenerator(in, *args) {
 		out.WriteString(line)
 	}
 	out.Flush()
