@@ -31,17 +31,17 @@ func formatted(line string, args cmd_args.CommandLineArgs) string {
 func processLine(line string, repetitionsNum int, args cmd_args.CommandLineArgs) string {
 	switch {
 	case args.CountOccurrences: // -c
-		return fmt.Sprint(repetitionsNum) + " " + line + "\n"
+		return fmt.Sprint(repetitionsNum) + " " + line
 	case args.PrintOnlyRepeated: // -d
 		if repetitionsNum > 1 {
-			return line + "\n"
+			return line
 		}
 	case args.PrintOnlyNotRepeated: // -u
 		if repetitionsNum == 1 {
-			return line + "\n"
+			return line
 		}
 	default:
-		return line + "\n"
+		return line
 	}
 	return ""
 }
