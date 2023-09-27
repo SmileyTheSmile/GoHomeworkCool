@@ -1,26 +1,27 @@
 package loops
 
 import (
+	"GoHomework/cmd_args"
 	"strings"
 )
 
-func areDifferent(line1 string, line2 string, numFields int, numChars int, ignoreRegister bool) bool {
-	return formatted(line1, numFields, numChars, ignoreRegister) != formatted(line2, numFields, numChars, ignoreRegister)
+func isEqual(line1 string, line2 string, args cmd_args.CommandLineArgs) bool {
+	return formatted(line1, args) == formatted(line2, args)
 }
 
-func formatted(line string, numFields int, numChars int, ignoreRegister bool) string {
-	if ignoreRegister {
+func formatted(line string, args cmd_args.CommandLineArgs) string {
+	if args.IgnoreRegister {
 		line = strings.ToLower(line)
 	}
-	if numFields != 0 {
-		var splitLine = strings.Split(line, " ")
-		if len(splitLine) <= numFields {
+	if args.NumOfFieldsToIgnore != 0 {
+		var splitLine = strings.Fields(line)
+		if len(splitLine) <= args.NumOfFieldsToIgnore {
 			return ""
 		}
-		line = strings.Join(splitLine[numFields:], " ")
+		line = strings.Join(splitLine[args.NumOfFieldsToIgnore:], " ")
 	}
-	if len(line) <= numChars {
+	if len(line) <= args.NumOfCharsToIgnore {
 		return ""
 	}
-	return line[numChars:]
+	return line[args.NumOfCharsToIgnore:]
 }

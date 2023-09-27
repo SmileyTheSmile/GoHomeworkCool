@@ -1,72 +1,50 @@
 package loops
 
 import (
+	"GoHomework/cmd_args"
 	"bufio"
 	"fmt"
 )
 
-func NormalLoop(in *bufio.Scanner, out *bufio.Writer, numFields int, numChars int, ignoreRegister bool) {
-	var lastRepeated string
-	for in.Scan() {
-		var newLine = in.Text()
-		if areDifferent(newLine, lastRepeated, numFields, numChars, ignoreRegister) {
-			lastRepeated = newLine
-			out.WriteString(lastRepeated + "\n")
+func processArgs(lastRepeatedLine string, repetitionsNum int, args cmd_args.CommandLineArgs) string {
+	switch {
+	case args.CountOccurrences: // -c
+		return fmt.Sprint(repetitionsNum) + " " + lastRepeatedLine + "\n"
+	case args.PrintOnlyRepeated: // -d
+		if repetitionsNum > 1 {
+			return lastRepeatedLine + "\n"
 		}
+	case args.PrintOnlyNotRepeated: // -u
+		if repetitionsNum == 1 {
+			return lastRepeatedLine + "\n"
+		}
+	default:
+		return lastRepeatedLine + "\n"
 	}
+	return ""
 }
 
-// -c
-func CountOccurrencesLoop(in *bufio.Scanner, out *bufio.Writer, numFields int, numChars int, ignoreRegister bool) {
-	repetitionsNum := 1
+func ChosenLinesGenerator(in *bufio.Scanner, args cmd_args.CommandLineArgs) chan string {
+	ch := make(chan string)
 
-	in.Scan()
-	var lastRepeated = in.Text()
-	for in.Scan() {
-		var newLine = in.Text()
-		if areDifferent(newLine, lastRepeated, numFields, numChars, ignoreRegister) {
-			out.WriteString(fmt.Sprint(repetitionsNum) + " " + lastRepeated + "\n")
-			lastRepeated = newLine
-			repetitionsNum = 0
-		}
-		repetitionsNum += 1
-	}
-	out.WriteString(fmt.Sprint(repetitionsNum) + " " + lastRepeated + "\n")
-}
+	go func(ch chan string) {
+		repetitionsNum := 1
 
-// -d
-func PrintOnlyRepeatedLoop(in *bufio.Scanner, out *bufio.Writer, numFields int, numChars int, ignoreRegister bool) {
-	in.Scan()
-	var lastLine = in.Text()
-	var lastRepeated = lastLine + "diff"
-	for in.Scan() {
-		var newLine = in.Text()
-		if areDifferent(newLine, lastLine, numFields, numChars, ignoreRegister) {
-			lastRepeated = lastLine
-		} else if areDifferent(lastRepeated, lastLine, numFields, numChars, ignoreRegister) {
-			out.WriteString(lastLine + "\n")
-			lastRepeated = lastLine
-		}
-		lastLine = newLine
-	}
-}
-
-// -u
-func PrintOnlyNotRepeatedLoop(in *bufio.Scanner, out *bufio.Writer, numFields int, numChars int, ignoreRegister bool) {
-	in.Scan()
-	var lastLine = in.Text()
-	var lastRepeated = lastLine
-	for in.Scan() {
-		var newLine = in.Text()
-		if areDifferent(lastRepeated, lastLine, numFields, numChars, ignoreRegister) {
-			if areDifferent(newLine, lastLine, numFields, numChars, ignoreRegister) {
-				out.WriteString(lastLine + "\n")
+		in.Scan()
+		var lastRepeatedLine = in.Text()
+		for in.Scan() {
+			var newLine = in.Text()
+			if !isEqual(newLine, lastRepeatedLine, args) {
+				ch <- processArgs(lastRepeatedLine, repetitionsNum, args)
+				repetitionsNum = 0
+				lastRepeatedLine = newLine
 			}
-			lastRepeated = lastLine
+			repetitionsNum += 1
 		}
-		lastLine = newLine
-	}
-	if areDifferent(lastRepeated, lastLine, numFields, numChars, ignoreRegister) {
-		out.WriteString(lastLine + "\n")
-	}
+		ch <- processArgs(lastRepeatedLine, repetitionsNum, args)
+
+		close(ch)
+	}(ch)
+
+	return ch
 }

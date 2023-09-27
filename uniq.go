@@ -24,6 +24,7 @@ func main() {
 		file, err := os.Open(args.Input)
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
 		defer file.Close()
 		in = bufio.NewScanner(file)
@@ -33,23 +34,17 @@ func main() {
 	if args.Output == "" {
 		out = bufio.NewWriter(os.Stdout)
 	} else {
-		file, err := os.OpenFile(args.Output, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0644)
+		file, err := os.Create(args.Output)
 		if err != nil {
 			fmt.Println(err.Error())
+			return
 		}
 		defer file.Close()
 		out = bufio.NewWriter(file)
 	}
 
-	switch {
-	case *args.CountOccurrences:
-		loops.CountOccurrencesLoop(in, out, *args.NumOfFieldsToIgnore, *args.NumOfCharsToIgnore, *args.IgnoreRegister)
-	case *args.PrintOnlyRepeated:
-		loops.PrintOnlyRepeatedLoop(in, out, *args.NumOfFieldsToIgnore, *args.NumOfCharsToIgnore, *args.IgnoreRegister)
-	case *args.PrintOnlyNotRepeated:
-		loops.PrintOnlyNotRepeatedLoop(in, out, *args.NumOfFieldsToIgnore, *args.NumOfCharsToIgnore, *args.IgnoreRegister)
-	default:
-		loops.NormalLoop(in, out, *args.NumOfFieldsToIgnore, *args.NumOfCharsToIgnore, *args.IgnoreRegister)
+	for line := range loops.ChosenLinesGenerator(in, *args) {
+		out.WriteString(line)
 	}
 	out.Flush()
 }
