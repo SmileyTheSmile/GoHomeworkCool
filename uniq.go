@@ -41,10 +41,15 @@ func main() {
 		defer outFile.Close()
 	}
 
-	out := bufio.NewWriter(outFile)
+	var lines []string
+	in := bufio.NewScanner(inFile)
+	for in.Scan() {
+		lines = append(lines, in.Text())
+	}
 
-	for line := range lines_filtering.ChosenLinesGenerator(inFile, *args) {
-		out.WriteString(line + "\n")
+	out := bufio.NewWriter(outFile)
+	for line := range lines_filtering.ChosenLinesGenerator(lines, *args) {
+		out.WriteString(line)
 	}
 	out.Flush()
 }
