@@ -44,7 +44,7 @@ func main() {
 	}
 
 	for line := range lines_filtering.ChosenLinesGenerator(in, *args) {
-		out.WriteString(line)
+		out.WriteString(line + "/n")
 	}
 	out.Flush()
 }
