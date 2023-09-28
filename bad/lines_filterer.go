@@ -1,4 +1,4 @@
-package lines_filtering
+package bad
 
 import (
 	"GoHomework/cmd_args"
@@ -33,14 +33,20 @@ func generatorLoopEpic(args cmd_args.CommandLineArgs, inChan chan string, outCha
 
 	for newLine, ok := <-inChan; ok; newLine, ok = <-inChan {
 		if applyArgs(newLine, args) != applyArgs(lastRepeatedLine, args) {
-			outChan <- processLine(lastRepeatedLine, lineRepetitions, args)
+			line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
+			if ok {
+				outChan <- line
+			}
 			lineRepetitions = 0
 			lastRepeatedLine = newLine
 		}
 		lineRepetitions += 1
 	}
 
-	outChan <- processLine(lastRepeatedLine, lineRepetitions, args)
+	line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
+	if ok {
+		outChan <- line
+	}
 
 	close(outChan)
 }

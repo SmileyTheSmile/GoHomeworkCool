@@ -17,34 +17,40 @@ func generatorLoop(lines []string, args cmd_args.CommandLineArgs, outChan chan s
 
 	for _, newLine := range lines[1:] {
 		if applyArgs(newLine, args) != applyArgs(lastRepeatedLine, args) {
-			outChan <- processLine(lastRepeatedLine, lineRepetitions, args)
+			line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
+			if ok {
+				outChan <- line
+			}
 			lineRepetitions = 0
 			lastRepeatedLine = newLine
 		}
 		lineRepetitions += 1
 	}
 
-	outChan <- processLine(lastRepeatedLine, lineRepetitions, args)
+	line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
+	if ok {
+		outChan <- line
+	}
 
 	close(outChan)
 }
 
-func processLine(line string, repetitionsNum int, args cmd_args.CommandLineArgs) string {
+func processLine(line string, repetitionsNum int, args cmd_args.CommandLineArgs) (string, bool) {
 	switch {
 	case args.CountOccurrences: // -c
-		return fmt.Sprint(repetitionsNum, " ", line, "\n")
+		return fmt.Sprint(repetitionsNum, " ", line, "\n"), true
 	case args.PrintOnlyRepeated: // -d
 		if repetitionsNum > 1 {
-			return line + "\n"
+			return line + "\n", true
 		}
 	case args.PrintOnlyNotRepeated: // -u
 		if repetitionsNum == 1 {
-			return line + "\n"
+			return line + "\n", true
 		}
 	default:
-		return line + "\n"
+		return line + "\n", true
 	}
-	return ""
+	return "", false
 }
 
 func applyArgs(line string, args cmd_args.CommandLineArgs) string {
