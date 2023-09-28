@@ -1,25 +1,29 @@
 package parsing
 
 import (
+	"errors"
 	"math"
 	"strconv"
 )
 
-var BINARY_OPERATIONS = map[string]func(float64, float64) float64{
-	"+": func(left float64, right float64) float64 {
-		return left + right
+var BINARY_OPERATIONS = map[string]func(float64, float64) (float64, error){
+	"+": func(left float64, right float64) (float64, error) {
+		return left + right, nil
 	},
-	"-": func(left float64, right float64) float64 {
-		return left - right
+	"-": func(left float64, right float64) (float64, error) {
+		return left - right, nil
 	},
-	"*": func(left float64, right float64) float64 {
-		return left * right
+	"*": func(left float64, right float64) (float64, error) {
+		return left * right, nil
 	},
-	"^": func(left float64, right float64) float64 {
-		return math.Pow(left, right)
+	"^": func(left float64, right float64) (float64, error) {
+		return math.Pow(left, right), nil
 	},
-	"/": func(left float64, right float64) float64 {
-		return left / right
+	"/": func(left float64, right float64) (float64, error) {
+		if right == 0 {
+			return 0, errors.New("Деление на 0")
+		}
+		return left / right, nil
 	},
 }
 
@@ -42,8 +46,11 @@ func SolvePostfix(postfixExpression []string) (float64, error) {
 		case BINARY_OPERATIONS[token] != nil:
 			right, _ := operandsStack.Pop()
 			left, _ := operandsStack.Pop()
-			result := BINARY_OPERATIONS[token](left, right)
+			result, err := BINARY_OPERATIONS[token](left, right)
 			//fmt.Println(left, token, right, "=", result)
+			if err != nil {
+				return 0, err
+			}
 			operandsStack.Push(result)
 		case UNARY_OPERATIONS[token] != nil:
 			expression, _ := operandsStack.Pop()

@@ -106,7 +106,7 @@ func InfixToPostfix(infix string) (Stack[string], error) {
 	for i, char := range infix {
 		err := processChar(i, char, &numberBuffer, &operatorBuffer, &postfixStack, &symbolStack, infix)
 		if err != nil {
-			return Stack[string]{}, errors.New("Неверный оператор")
+			return Stack[string]{}, err
 		}
 	}
 

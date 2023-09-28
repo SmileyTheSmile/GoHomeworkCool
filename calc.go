@@ -26,6 +26,7 @@ func main() {
 		fmt.Println(err.Error())
 		return
 	}
+	fmt.Println(strings.Join(postfixExpression.ToSlice(), ""))
 	result, err := parsing.SolvePostfix(postfixExpression.ToSlice())
 	if err != nil {
 		fmt.Println(err.Error())
