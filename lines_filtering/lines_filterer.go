@@ -6,20 +6,15 @@ import (
 	"strings"
 )
 
-func ChosenLinesGenerator(lines []string, args cmd_args.CommandLineArgs) chan string {
-	outChan := make(chan string)
-	go generatorLoop(lines, args, outChan)
-	return outChan
-}
-
-func generatorLoop(lines []string, args cmd_args.CommandLineArgs, outChan chan string) {
+func FilterLines(lines []string, args cmd_args.CommandLineArgs) []string {
 	lastRepeatedLine, lineRepetitions := lines[0], 1
 
+	var result []string
 	for _, newLine := range lines[1:] {
 		if applyArgs(newLine, args) != applyArgs(lastRepeatedLine, args) {
 			line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
 			if ok {
-				outChan <- line
+				result = append(result, line)
 			}
 			lineRepetitions = 0
 			lastRepeatedLine = newLine
@@ -29,10 +24,10 @@ func generatorLoop(lines []string, args cmd_args.CommandLineArgs, outChan chan s
 
 	line, ok := processLine(lastRepeatedLine, lineRepetitions, args)
 	if ok {
-		outChan <- line
+		result = append(result, line)
 	}
 
-	close(outChan)
+	return result
 }
 
 func processLine(line string, repetitionsNum int, args cmd_args.CommandLineArgs) (string, bool) {

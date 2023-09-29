@@ -9,6 +9,46 @@ import (
 	"os"
 )
 
+func readLines(args cmd_args.CommandLineArgs) ([]string, error) {
+	var inFile *os.File
+	if args.Input == "" {
+		inFile = os.Stdin
+	} else {
+		inFile, err := os.Open(args.Input)
+		if err != nil {
+			return []string{}, err
+		}
+		defer inFile.Close()
+	}
+
+	var lines []string
+	in := bufio.NewScanner(inFile)
+	for in.Scan() {
+		lines = append(lines, in.Text())
+	}
+	return lines, nil
+}
+
+func writeLines(lines []string, args cmd_args.CommandLineArgs) error {
+	var outFile *os.File
+	if args.Output == "" {
+		outFile = os.Stdout
+	} else {
+		outFile, err := os.Create(args.Output)
+		if err != nil {
+			return err
+		}
+		defer outFile.Close()
+	}
+
+	out := bufio.NewWriter(outFile)
+	for _, line := range lines_filtering.FilterLines(lines, args) {
+		out.WriteString(line)
+	}
+	out.Flush()
+	return nil
+}
+
 func main() {
 	args, err := cmd_args.GetCommandLineArgs()
 
@@ -17,39 +57,15 @@ func main() {
 		return
 	}
 
-	var inFile *os.File
-	if args.Input == "" {
-		inFile = os.Stdin
-	} else {
-		inFile, err = os.Open(args.Input)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		defer inFile.Close()
+	lines, err := readLines(*args)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
 	}
 
-	var outFile *os.File
-	if args.Output == "" {
-		outFile = os.Stdout
-	} else {
-		outFile, err = os.Create(args.Output)
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		defer outFile.Close()
+	err = writeLines(lines, *args)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
 	}
-
-	var lines []string
-	in := bufio.NewScanner(inFile)
-	for in.Scan() {
-		lines = append(lines, in.Text())
-	}
-
-	out := bufio.NewWriter(outFile)
-	for line := range lines_filtering.ChosenLinesGenerator(lines, *args) {
-		out.WriteString(line)
-	}
-	out.Flush()
 }

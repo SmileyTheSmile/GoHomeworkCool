@@ -2,11 +2,12 @@ package lines_filtering
 
 import (
 	"GoHomework/cmd_args"
-	"reflect"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
-func TestChosenLinesGenerator(t *testing.T) {
+func Test_FilterLines(t *testing.T) {
 	type args struct {
 		lines []string
 		args  cmd_args.CommandLineArgs
@@ -189,13 +190,8 @@ func TestChosenLinesGenerator(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var got []string
-			for line := range ChosenLinesGenerator(tt.args.lines, tt.args.args) {
-				got = append(got, line)
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ChosenLinesGenerator() = %v, want %v", got, tt.want)
-			}
+			var got []string = FilterLines(tt.args.lines, tt.args.args)
+			require.Equal(t, got, tt.want, tt.name)
 		})
 	}
 }
@@ -280,28 +276,8 @@ func Test_applyArgs(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := applyArgs(tt.args.line, tt.args.args); got != tt.want {
-				t.Errorf("applyArgs() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
-func Test_generatorLoop(t *testing.T) {
-	type args struct {
-		lines   []string
-		args    cmd_args.CommandLineArgs
-		outChan chan string
-	}
-	tests := []struct {
-		name string
-		args args
-	}{
-		// TODO: Add test cases.
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			generatorLoop(tt.args.lines, tt.args.args, tt.args.outChan)
+			got := applyArgs(tt.args.line, tt.args.args)
+			require.Equal(t, got, tt.want, tt.name)
 		})
 	}
 }
@@ -392,12 +368,8 @@ func Test_processLine(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, got1 := processLine(tt.args.line, tt.args.repetitionsNum, tt.args.args)
-			if got != tt.want {
-				t.Errorf("processLine() got = %v, want %v", got, tt.want)
-			}
-			if got1 != tt.want1 {
-				t.Errorf("processLine() got1 = %v, want %v", got1, tt.want1)
-			}
+			require.Equal(t, got, tt.want, tt.name)
+			require.Equal(t, got1, tt.want1, tt.name)
 		})
 	}
 }
