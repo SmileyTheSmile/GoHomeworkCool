@@ -1,12 +1,13 @@
 package parsing
 
 import (
+	datastructs "GoHomework/datastructs"
 	"errors"
 	"math"
 	"strconv"
 )
 
-var BINARY_OPERATIONS = map[string]func(float64, float64) (float64, error){
+var BinaryOperations = map[string]func(float64, float64) (float64, error){
 	"+": func(left float64, right float64) (float64, error) {
 		return left + right, nil
 	},
@@ -27,34 +28,36 @@ var BINARY_OPERATIONS = map[string]func(float64, float64) (float64, error){
 	},
 }
 
-var UNARY_OPERATIONS = map[string]func(float64) float64{
-	"ceil": func(expression float64) float64 {
-		return math.Ceil(expression)
-	},
-	"unary_minus": func(expression float64) float64 {
-		return -expression
-	},
-	"sqrt": func(expression float64) float64 {
-		return math.Sqrt(expression)
-	},
+var UnaryOperations = map[string]func(float64) float64{
+	/*
+		"ceil": func(expression float64) float64 {
+			return math.Ceil(expression)
+		},
+		"unary_minus": func(expression float64) float64 {
+			return -expression
+		},
+		"sqrt": func(expression float64) float64 {
+			return math.Sqrt(expression)
+		},
+	*/
 }
 
 func SolvePostfix(postfixExpression []string) (float64, error) {
-	var operandsStack Stack[float64]
+	var operandsStack datastructs.Stack[float64]
 	for _, token := range postfixExpression {
 		switch {
-		case BINARY_OPERATIONS[token] != nil:
+		case BinaryOperations[token] != nil:
 			right, _ := operandsStack.Pop()
 			left, _ := operandsStack.Pop()
-			result, err := BINARY_OPERATIONS[token](left, right)
+			result, err := BinaryOperations[token](left, right)
 			//fmt.Println(left, token, right, "=", result)
 			if err != nil {
 				return 0, err
 			}
 			operandsStack.Push(result)
-		case UNARY_OPERATIONS[token] != nil:
+		case UnaryOperations[token] != nil:
 			expression, _ := operandsStack.Pop()
-			result := UNARY_OPERATIONS[token](expression)
+			result := UnaryOperations[token](expression)
 			//fmt.Println(token, expression, "=", result)
 			operandsStack.Push(result)
 		default:

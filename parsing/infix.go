@@ -1,28 +1,24 @@
 package parsing
 
 import (
+	datastructs "GoHomework/datastructs"
 	"errors"
-	"fmt"
 	"strings"
 	"unicode"
 )
 
 func priority(s string) int {
 	var priorities = map[string]int{
-		"+":           1,
-		"-":           2,
-		"*":           3,
-		"/":           3,
-		"^":           4,
-		"unary_minus": 5,
-		"sqrt":        6,
-		"ceil":        6,
+		"+": 1,
+		"-": 2,
+		"*": 3,
+		"/": 3,
+		"^": 4,
+		//"unary_minus": 5,
+		//"sqrt":        6,
+		//"ceil":        6,
 	}
 	return priorities[s]
-}
-
-func isPartOfNumber(char rune) bool {
-	return unicode.IsDigit(char) || char == '.'
 }
 
 func isUnaryMinus(char string, i int, infix string) bool {
@@ -39,7 +35,7 @@ func isOperator(word string) bool {
 	return word == "ceil" || word == "sqrt" || isSpecialChar(word)
 }
 
-func isNotMoreImportantOperator(char string, top string, symbolStack Stack[string]) bool {
+func isNotMoreImportantOperator(char string, top string, symbolStack datastructs.Stack[string]) bool {
 	return !symbolStack.Empty() && priority(char) <= priority(top)
 }
 
@@ -48,11 +44,11 @@ func processChar(
 	char rune,
 	numberBuffer *strings.Builder,
 	operatorBuffer *strings.Builder,
-	postfixStack *Stack[string],
-	symbolStack *Stack[string],
+	postfixStack *datastructs.Stack[string],
+	symbolStack *datastructs.Stack[string],
 	infix string,
 ) error {
-	if isPartOfNumber(char) {
+	if unicode.IsDigit(char) || char == '.' {
 		numberBuffer.WriteRune(char)
 		return nil
 	}
@@ -78,9 +74,12 @@ func processChar(
 	case char == '(':
 		symbolStack.Push(string(char))
 	case char == ')':
-		for top, _ := symbolStack.Top(); top != "("; top, _ = symbolStack.Top() {
+		for top, ok := symbolStack.Top(); top != "("; top, ok = symbolStack.Top() {
 			popVal, _ := symbolStack.Pop()
 			postfixStack.Push(popVal)
+			if !ok {
+				return errors.New("Неправильные скобки")
+			}
 		}
 		symbolStack.Pop()
 	case isUnaryMinus(string(char), i, infix):
@@ -97,16 +96,16 @@ func processChar(
 	return nil
 }
 
-func InfixToPostfix(infix string) (Stack[string], error) {
+func InfixToPostfix(infix string) (datastructs.Stack[string], error) {
 	var numberBuffer strings.Builder
 	var operatorBuffer strings.Builder
-	var postfixStack Stack[string]
-	var symbolStack Stack[string]
+	var postfixStack datastructs.Stack[string]
+	var symbolStack datastructs.Stack[string]
 
 	for i, char := range infix {
 		err := processChar(i, char, &numberBuffer, &operatorBuffer, &postfixStack, &symbolStack, infix)
 		if err != nil {
-			return Stack[string]{}, err
+			return datastructs.Stack[string]{}, err
 		}
 	}
 
@@ -115,27 +114,31 @@ func InfixToPostfix(infix string) (Stack[string], error) {
 	}
 
 	if operatorBuffer.Len() != 0 {
-		return Stack[string]{}, errors.New("Странный оператор в конце выражения")
+		return datastructs.Stack[string]{}, errors.New("Странный оператор в конце выражения")
 	}
 
 	for !symbolStack.Empty() {
 		popVal, _ := symbolStack.Pop()
+		if popVal == "(" {
+			return datastructs.Stack[string]{}, errors.New("Неправильные скобки")
+		}
 		postfixStack.Push(popVal)
 	}
 
 	return postfixStack, nil
 }
 
+/*
 func processCharIncomplete(
 	i int,
 	char rune,
 	numberBuffer *strings.Builder,
 	operatorBuffer *strings.Builder,
-	postfixStack *Stack[string],
-	symbolStack *Stack[string],
+	postfixStack *datastructs.Stack[string],
+	symbolStack *datastructs.Stack[string],
 	infix string,
 ) error {
-	if isPartOfNumber(char) {
+	if unicode.IsDigit(char) || char == '.' {
 		numberBuffer.WriteRune(char)
 		return nil
 	} else if unicode.IsLetter(char) {
@@ -183,3 +186,4 @@ func processCharIncomplete(
 	}
 	return nil
 }
+*/
