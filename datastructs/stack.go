@@ -3,6 +3,9 @@ package parsing
 type Stack[T any] []T
 
 func (s *Stack[T]) Empty() bool {
+	if *s == nil {
+		return true
+	}
 	return len(*s) == 0
 }
 
