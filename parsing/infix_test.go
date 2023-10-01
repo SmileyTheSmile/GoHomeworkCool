@@ -33,16 +33,6 @@ func TestInfixToPostfix(t *testing.T) {
 			want:    "1234/*+",
 			wantErr: false,
 		},
-		/*
-			{
-				name: "Унарная функция",
-				args: args{
-					infix: "1+2*(3/4)+sqrt(4)", // 4.5
-				},
-				want:    "1234/*+4sqrt+",
-				wantErr: false,
-			},
-		*/
 		{
 			name: "Неизвестный оператор",
 			args: args{
@@ -91,13 +81,21 @@ func TestInfixToPostfix(t *testing.T) {
 			want:    "",
 			wantErr: true,
 		},
+		{
+			name: "Отрицательное число",
+			args: args{
+				infix: "2+(-3)",
+			},
+			want:    "23unary_minus+",
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got_raw, err := InfixToPostfix(tt.args.infix)
 			got := strings.Join(got_raw.ToSlice(), "")
-			require.Equal(t, got, tt.want, tt.name)
-			require.Equal(t, err != nil, tt.wantErr, tt.name)
+			require.Equal(t, tt.wantErr, err != nil, tt.name)
+			require.Equal(t, tt.want, got, tt.name)
 		})
 	}
 }
@@ -119,8 +117,6 @@ func Test_priority(t *testing.T) {
 		"/":           3,
 		"^":           4,
 		"unary_minus": 5,
-		"sqrt":        6,
-		"ceil":        6,
 	}
 	keys := make([]string, 0, len(priorities))
 	for _, key := range keys {
@@ -134,7 +130,7 @@ func Test_priority(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got := priority(tt.args.s)
-			require.Equal(t, got, tt.want, tt.name)
+			require.Equal(t, tt.want, got, tt.name)
 		})
 	}
 }

@@ -1,6 +1,10 @@
 package parsing
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/stretchr/testify/require"
+)
 
 func TestSolvePostfix(t *testing.T) {
 	type args struct {
@@ -28,16 +32,6 @@ func TestSolvePostfix(t *testing.T) {
 			want:    2.5,
 			wantErr: false,
 		},
-		/*
-			{
-				name: "Унарная функция",
-				args: args{
-					postfixExpression: []string{"1", "2", "3", "4", "/", "*", "+", "4", "sqrt", "+"},
-				},
-				want:    4.5,
-				wantErr: false,
-			},
-		*/
 		{
 			name: "Числа из нескольких цифр",
 			args: args{
@@ -54,17 +48,20 @@ func TestSolvePostfix(t *testing.T) {
 			want:    66.3,
 			wantErr: false,
 		},
+		{
+			name: "Отрицательное число",
+			args: args{
+				postfixExpression: []string{"2", "3", "unary_minus", "+"},
+			},
+			want:    -1,
+			wantErr: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := SolvePostfix(tt.args.postfixExpression)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("SolvePostfix() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if got != tt.want {
-				t.Errorf("SolvePostfix() got = %v, want %v", got, tt.want)
-			}
+			require.Equal(t, tt.want, got, tt.name)
+			require.Equal(t, tt.wantErr, err != nil, tt.name)
 		})
 	}
 }

@@ -29,17 +29,9 @@ var BinaryOperations = map[string]func(float64, float64) (float64, error){
 }
 
 var UnaryOperations = map[string]func(float64) float64{
-	/*
-		"ceil": func(expression float64) float64 {
-			return math.Ceil(expression)
-		},
-		"unary_minus": func(expression float64) float64 {
-			return -expression
-		},
-		"sqrt": func(expression float64) float64 {
-			return math.Sqrt(expression)
-		},
-	*/
+	"unary_minus": func(operand float64) float64 {
+		return -operand
+	},
 }
 
 func SolvePostfix(postfixExpression []string) (float64, error) {
@@ -50,7 +42,6 @@ func SolvePostfix(postfixExpression []string) (float64, error) {
 			right, _ := operandsStack.Pop()
 			left, _ := operandsStack.Pop()
 			result, err := BinaryOperations[token](left, right)
-			//fmt.Println(left, token, right, "=", result)
 			if err != nil {
 				return 0, err
 			}
@@ -58,7 +49,6 @@ func SolvePostfix(postfixExpression []string) (float64, error) {
 		case UnaryOperations[token] != nil:
 			expression, _ := operandsStack.Pop()
 			result := UnaryOperations[token](expression)
-			//fmt.Println(token, expression, "=", result)
 			operandsStack.Push(result)
 		default:
 			operand, _ := strconv.ParseFloat(token, 64)

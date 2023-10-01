@@ -19,13 +19,11 @@ func (s *Stack[T]) Top() (T, bool) {
 }
 
 func (s *Stack[T]) Pop() (T, bool) {
-	if s.Empty() {
-		var zero T
-		return zero, false
+	top, ok := s.Top()
+	if ok {
+		*s = (*s)[:len(*s)-1]
 	}
-	top := (*s)[len(*s)-1]
-	*s = (*s)[:len(*s)-1]
-	return top, true
+	return top, ok
 }
 
 func (s *Stack[T]) ToSlice() []T {
