@@ -22,7 +22,7 @@ var BinaryOperations = map[string]func(float64, float64) (float64, error){
 	},
 	"/": func(left float64, right float64) (float64, error) {
 		if right == 0 {
-			return 0, errors.New("Деление на 0")
+			return 0, errors.New("деление на 0")
 		}
 		return left / right, nil
 	},

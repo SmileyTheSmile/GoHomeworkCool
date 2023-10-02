@@ -7,6 +7,10 @@ import (
 	"unicode"
 )
 
+const unaryMinus string = "unary_minus"
+const charOperators string = "+-*/^"
+const specialChars string = charOperators + "("
+
 func priority(s string) int {
 	var priorities = map[string]int{
 		"+":           1,
@@ -22,28 +26,28 @@ func priority(s string) int {
 func isUnaryMinus(char string, i int, infix string) bool {
 	return char == "-" &&
 		(i == 0 ||
-			strings.ContainsAny(string(infix[i-1]), "(+-*/^"))
+			strings.ContainsAny(string(infix[i-1]), specialChars))
 }
 
 func isOperator(char string) bool {
-	return strings.ContainsAny("+-*/^", char)
+	return strings.ContainsAny(charOperators, char)
 }
 
 func processChar(
 	i int,
 	char rune,
 	numberBuffer *strings.Builder,
-	postfix *[]string,
+	postfix []string,
 	symbolStack *datastructs.Stack[string],
 	infix string,
-) error {
+) ([]string, error) {
 	if unicode.IsDigit(char) || char == '.' {
 		numberBuffer.WriteRune(char)
-		return nil
+		return postfix, nil
 	}
 
 	if numberBuffer.Len() != 0 {
-		*postfix = append(*postfix, numberBuffer.String())
+		postfix = append(postfix, numberBuffer.String())
 		numberBuffer.Reset()
 	}
 
@@ -53,51 +57,52 @@ func processChar(
 	case char == ')':
 		for top, ok := symbolStack.Top(); top != "("; top, ok = symbolStack.Top() {
 			popVal, _ := symbolStack.Pop()
-			*postfix = append(*postfix, popVal)
+			postfix = append(postfix, popVal)
 			if !ok {
-				return errors.New("Неправильные скобки")
+				return []string{}, errors.New("неправильные скобки")
 			}
 		}
 		symbolStack.Pop()
 	case isUnaryMinus(string(char), i, infix):
-		symbolStack.Push("unary_minus")
+		symbolStack.Push(unaryMinus)
 	case isOperator(string(char)):
 		for top, ok := symbolStack.Top(); ok && priority(string(char)) <= priority(top); top, ok = symbolStack.Top() {
 			popVal, _ := symbolStack.Pop()
-			*postfix = append(*postfix, popVal)
+			postfix = append(postfix, popVal)
 		}
 		symbolStack.Push(string(char))
 	default:
-		return errors.New("Неизвестный символ")
+		return []string{}, errors.New("неизвестный символ")
 	}
-	return nil
+	return postfix, nil
 }
 
 func InfixToPostfix(infix string) (datastructs.Stack[string], error) {
 	var (
 		numberBuffer strings.Builder
-		postfixStack []string
+		postfix      []string
 		symbolStack  datastructs.Stack[string]
+		err          error
 	)
 
 	for i, char := range infix {
-		err := processChar(i, char, &numberBuffer, &postfixStack, &symbolStack, infix)
+		postfix, err = processChar(i, char, &numberBuffer, postfix, &symbolStack, infix)
 		if err != nil {
-			return datastructs.Stack[string]{}, err
+			return []string{}, err
 		}
 	}
 
 	if numberBuffer.Len() != 0 {
-		postfixStack = append(postfixStack, numberBuffer.String())
+		postfix = append(postfix, numberBuffer.String())
 	}
 
 	for !symbolStack.Empty() {
 		popVal, _ := symbolStack.Pop()
 		if popVal == "(" {
-			return datastructs.Stack[string]{}, errors.New("Неправильные скобки")
+			return datastructs.Stack[string]{}, errors.New("неправильные скобки")
 		}
-		postfixStack = append(postfixStack, popVal)
+		postfix = append(postfix, popVal)
 	}
 
-	return postfixStack, nil
+	return postfix, nil
 }
